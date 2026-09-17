@@ -1,0 +1,59 @@
+{
+  "realm": "laptop-store",
+  "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "CUSTOMER",
+        "description": "Standard Storefront Customer"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Store Administrator"
+      },
+      {
+        "name": "PRODUCT_MANAGER",
+        "description": "Product & Configuration Manager"
+      },
+      {
+        "name": "ORDER_MANAGER",
+        "description": "Order Processing Manager"
+      },
+      {
+        "name": "INVENTORY_MANAGER",
+        "description": "Warehouse Inventory Manager"
+      },
+      {
+        "name": "SUPER_ADMIN",
+        "description": "Super Administrator"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "store-frontend",
+      "name": "Laptop Store Web Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ]
+    },
+    {
+      "clientId": "store-backend",
+      "name": "Laptop Store FastAPI Backend",
+      "enabled": true,
+      "bearerOnly": true
+    }
+  ]
+}
