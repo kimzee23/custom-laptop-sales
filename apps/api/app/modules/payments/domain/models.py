@@ -15,6 +15,7 @@ class PaymentProviderType(str, Enum):
     PAYSTACK = "PAYSTACK"
     FLUTTERWAVE = "FLUTTERWAVE"
     OPAY = "OPAY"
+    BANK_TRANSFER = "BANK_TRANSFER"
 
 @dataclass(frozen=True)
 class PaymentRequest:

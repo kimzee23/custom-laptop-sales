@@ -66,6 +66,12 @@ class Settings(BaseSettings):
     OPAY_BASE_URL: str = os.getenv("OPAY_BASE_URL", "https://cashierapi.opayweb.com")
     OPAY_ENV: str = os.getenv("OPAY_ENV", "test") # test or live
 
+    # Company Bank Account Settings (Direct Transfer)
+    COMPANY_BANK_NAME: str = os.getenv("COMPANY_BANK_NAME", "Guaranty Trust Bank (GTBank)")
+    COMPANY_ACCOUNT_NAME: str = os.getenv("COMPANY_ACCOUNT_NAME", "Custom Laptop Sales Nigeria Ltd")
+    COMPANY_ACCOUNT_NUMBER: str = os.getenv("COMPANY_ACCOUNT_NUMBER", "0123456789")
+    COMPANY_WHATSAPP_NUMBER: str = os.getenv("COMPANY_WHATSAPP_NUMBER", "+2347084256460")
+
     class Config:
         case_sensitive = True
         env_file = ".env"

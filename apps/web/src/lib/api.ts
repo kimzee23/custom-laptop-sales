@@ -191,9 +191,20 @@ export const api = {
     return fetchJson<any[]>('/payments/gateways');
   },
 
+  async getCompanyBankDetails() {
+    return fetchJson<{
+      bank_name: string;
+      account_name: string;
+      account_number: string;
+      currency: string;
+      whatsapp_confirmation: string;
+      instructions: string;
+    }>('/payments/company-bank');
+  },
+
   async initializePayment(payload: {
     order_number: string;
-    provider: 'PAYSTACK' | 'FLUTTERWAVE' | 'OPAY';
+    provider: 'PAYSTACK' | 'FLUTTERWAVE' | 'OPAY' | 'BANK_TRANSFER';
     idempotency_key: string;
     callback_url?: string;
   }) {
@@ -214,6 +225,51 @@ export const api = {
     return fetchJson<any>(`/payments/mock-complete/${reference}`, {
       method: 'POST',
     });
+  },
+
+  // -----------------
+  // Analytics & Traffic Tracking
+  // -----------------
+  async trackVisit(pagePath: string = '/', sessionId?: string) {
+    try {
+      return await fetchJson<{
+        status: string;
+        date: string;
+        today_total_visits: number;
+        today_unique_visitors: number;
+        today_page_views: number;
+      }>('/analytics/visit', {
+        method: 'POST',
+        body: JSON.stringify({
+          page_path: pagePath,
+          session_id: sessionId,
+          referrer: typeof document !== 'undefined' ? document.referrer : '',
+        }),
+      });
+    } catch (e) {
+      // Silently catch tracking errors so customer navigation is never disrupted
+      console.warn('Analytics ping skipped:', e);
+      return null;
+    }
+  },
+
+  async getDailyVisits() {
+    return fetchJson<{
+      today: { date: string; total_visits: number; unique_visitors: number; page_views: number };
+      yesterday?: { date: string; total_visits: number; unique_visitors: number; page_views: number };
+      total_lifetime_visits: number;
+      total_lifetime_uniques: number;
+      daily_history: Array<{ date: string; total_visits: number; unique_visitors: number; page_views: number }>;
+    }>('/analytics/daily-visits');
+  },
+
+  async getVisitorSummary() {
+    return fetchJson<{
+      date: string;
+      visits_today: number;
+      unique_visitors_today: number;
+      page_views_today: number;
+    }>('/analytics/summary');
   },
 
   // -----------------

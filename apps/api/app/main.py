@@ -19,6 +19,7 @@ from app.modules.artwork.router import router as artwork_router
 from app.modules.reviews.router import router as reviews_router
 from app.modules.admin.router import router as admin_router
 from app.modules.auth.router import router as auth_router
+from app.modules.analytics.router import router as analytics_router
 from fastapi.staticfiles import StaticFiles
 import os
 
@@ -100,6 +101,7 @@ app.include_router(artwork_router, prefix=settings.API_V1_STR)
 app.include_router(reviews_router, prefix=settings.API_V1_STR)
 app.include_router(admin_router, prefix=settings.API_V1_STR)
 app.include_router(auth_router, prefix=settings.API_V1_STR)
+app.include_router(analytics_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")

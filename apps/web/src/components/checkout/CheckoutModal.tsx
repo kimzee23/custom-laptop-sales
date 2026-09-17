@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { 
   X, ShieldCheck, CreditCard, ArrowRight, ArrowLeft, CheckCircle2, 
-  Lock, RefreshCw, Smartphone, Building, Zap, AlertCircle, Laptop
+  Lock, RefreshCw, Smartphone, Building, Zap, AlertCircle, Laptop,
+  Building2, Copy, Check, MessageSquare
 } from 'lucide-react'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
@@ -18,7 +19,7 @@ interface CheckoutModalProps {
   onClose: () => void
 }
 
-type GatewayType = 'PAYSTACK' | 'FLUTTERWAVE' | 'OPAY'
+type GatewayType = 'PAYSTACK' | 'FLUTTERWAVE' | 'OPAY' | 'BANK_TRANSFER'
 type CheckoutStep = 'address' | 'review' | 'payment' | 'processing'
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
@@ -430,6 +431,72 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                       Pay instantly with OPay App Wallet, QR Scan, OPay Cards, or Virtual Bank Accounts.
                     </p>
                   </div>
+                </div>
+
+                {/* Company Bank Account (Direct Transfer) */}
+                <div 
+                  onClick={() => setSelectedGateway('BANK_TRANSFER')}
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col gap-3 ${
+                    selectedGateway === 'BANK_TRANSFER' 
+                      ? 'border-primary bg-primary-soft/40 shadow-sm' 
+                      : 'border-border hover:border-muted hover:bg-white'
+                  }`}
+                >
+                  <div className="flex items-start gap-3.5">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                      selectedGateway === 'BANK_TRANSFER' ? 'border-primary bg-primary text-white' : 'border-border'
+                    }`}>
+                      {selectedGateway === 'BANK_TRANSFER' && <CheckCircle2 size={12} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-navy flex items-center gap-1.5">
+                          <Building2 size={15} className="text-primary" />
+                          Company Bank Account (Direct Transfer)
+                        </span>
+                        <Badge variant="primary" size="sm">Personal & Corporate</Badge>
+                      </div>
+                      <p className="text-xs text-muted mt-0.5">
+                        Direct bank deposit to company account. Send payment screenshot/receipt to WhatsApp for clearance.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Account Details Box when Selected */}
+                  {selectedGateway === 'BANK_TRANSFER' && (
+                    <div className="mt-1 p-3.5 rounded-xl bg-white border border-primary/30 shadow-sm space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted">Bank Name:</span>
+                        <span className="font-bold text-navy">Guaranty Trust Bank (GTBank)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted">Account Name:</span>
+                        <span className="font-bold text-navy">Custom Laptop Sales Nigeria Ltd</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-primary-soft/50 border border-primary/20">
+                        <div>
+                          <span className="text-[10px] text-muted block uppercase font-bold">Account Number</span>
+                          <span className="text-sm font-mono font-extrabold text-navy tracking-wider">0123456789</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigator.clipboard.writeText('0123456789')
+                            alert('Account number copied to clipboard: 0123456789')
+                          }}
+                          className="px-2.5 py-1 text-xs bg-primary text-white rounded-md font-semibold hover:bg-primary/90 flex items-center gap-1"
+                        >
+                          <Copy size={12} />
+                          Copy
+                        </button>
+                      </div>
+                      <div className="pt-1 text-[11px] text-muted flex items-start gap-1.5">
+                        <MessageSquare size={13} className="text-success mt-0.5 flex-shrink-0" />
+                        <span>Receipt Confirmation WhatsApp: <strong className="text-navy">0708 425 6460</strong> (+234 708 425 6460)</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

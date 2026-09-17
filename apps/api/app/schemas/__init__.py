@@ -169,6 +169,7 @@ class PaymentProviderEnum(str, Enum):
     PAYSTACK = "PAYSTACK"
     FLUTTERWAVE = "FLUTTERWAVE"
     OPAY = "OPAY"
+    BANK_TRANSFER = "BANK_TRANSFER"
 
 class PaymentGatewayInfo(BaseModel):
     id: str
@@ -517,4 +518,43 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(..., min_length=6)
+
+# -----------------
+# Website Visitor Analytics
+# -----------------
+class VisitorTrackRequest(BaseModel):
+    session_id: Optional[str] = None
+    page_path: Optional[str] = "/"
+    referrer: Optional[str] = None
+
+class VisitorTrackResponse(BaseModel):
+    status: str = "recorded"
+    date: str
+    today_total_visits: int
+    today_unique_visitors: int
+    today_page_views: int
+
+class DailyVisitorMetricItem(BaseModel):
+    date: str
+    total_visits: int
+    unique_visitors: int
+    page_views: int
+
+    class Config:
+        from_attributes = True
+
+class VisitorAnalyticsResponse(BaseModel):
+    today: DailyVisitorMetricItem
+    yesterday: Optional[DailyVisitorMetricItem] = None
+    total_lifetime_visits: int
+    total_lifetime_uniques: int
+    daily_history: List[DailyVisitorMetricItem] = []
+
+class CompanyBankDetailsResponse(BaseModel):
+    bank_name: str
+    account_name: str
+    account_number: str
+    currency: str = "NGN"
+    whatsapp_confirmation: str
+    instructions: str
 

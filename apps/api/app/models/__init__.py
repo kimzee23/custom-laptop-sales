@@ -291,3 +291,26 @@ class Promotion(Base):
     start_date = Column(DateTime, default=datetime.utcnow)
     end_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class DailyVisitorMetric(Base):
+    __tablename__ = "daily_visitor_metrics"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    date = Column(String(10), nullable=False, unique=True, index=True) # Format: YYYY-MM-DD
+    total_visits = Column(Integer, default=0, nullable=False)
+    unique_visitors = Column(Integer, default=0, nullable=False)
+    page_views = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class VisitorLog(Base):
+    __tablename__ = "visitor_logs"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    date = Column(String(10), nullable=False, index=True) # Format: YYYY-MM-DD
+    visitor_hash = Column(String(64), nullable=False, index=True) # sha256 of IP or Session
+    session_id = Column(String(100), nullable=True)
+    page_path = Column(String(255), nullable=True)
+    user_agent = Column(String(500), nullable=True)
+    referrer = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

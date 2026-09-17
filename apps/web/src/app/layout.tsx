@@ -4,6 +4,7 @@ import './globals.css'
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar'
 import { StoreFooter } from '@/components/layout/StoreFooter'
 import { ClientModals } from '@/components/layout/ClientModals'
+import { VisitorTracker } from '@/components/common/VisitorTracker'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-primary selection:text-white">
+        <VisitorTracker />
         <AnnouncementBar />
         <main className="flex-1">
           {children}

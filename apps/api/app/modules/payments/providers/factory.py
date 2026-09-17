@@ -4,6 +4,7 @@ from app.modules.payments.domain.interfaces import PaymentProvider
 from app.modules.payments.providers.paystack import PaystackPaymentProvider
 from app.modules.payments.providers.flutterwave import FlutterwavePaymentProvider
 from app.modules.payments.providers.opay import OPayPaymentProvider
+from app.modules.payments.providers.bank_transfer import BankTransferPaymentProvider
 
 class PaymentProviderFactory:
     """
@@ -21,6 +22,8 @@ class PaymentProviderFactory:
                 cls._providers[provider_type] = FlutterwavePaymentProvider()
             elif provider_type == PaymentProviderType.OPAY:
                 cls._providers[provider_type] = OPayPaymentProvider()
+            elif provider_type == PaymentProviderType.BANK_TRANSFER:
+                cls._providers[provider_type] = BankTransferPaymentProvider()
             else:
                 raise ValueError(f"Unsupported payment provider: {provider_type}")
         return cls._providers[provider_type]

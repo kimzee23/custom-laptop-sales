@@ -5,7 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, ShieldCheck, 
-  Cpu, HardDrive, Wrench, Package, Truck, Home, Download
+  Cpu, HardDrive, Wrench, Package, Truck, Home, Download,
+  Building2, MessageSquare, Copy, Check
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
@@ -18,11 +19,11 @@ function VerifyContent() {
   const router = useRouter()
   const { clearCart } = useCartStore()
 
-  const gateway = searchParams.get('gateway') || 'PAYSTACK'
+  const gateway = (searchParams.get('gateway') || 'PAYSTACK').toUpperCase()
   const reference = searchParams.get('reference') || searchParams.get('trxref') || searchParams.get('tx_ref') || searchParams.get('orderNo') || ''
   const statusParam = searchParams.get('status') || ''
 
-  const [verificationState, setVerificationState] = useState<'loading' | 'success' | 'failed'>('loading')
+  const [verificationState, setVerificationState] = useState<'loading' | 'success' | 'failed' | 'bank_transfer'>('loading')
   const [paymentData, setPaymentData] = useState<any>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -30,6 +31,25 @@ function VerifyContent() {
     let isMounted = true
 
     async function verify() {
+      // Direct Company Bank Transfer Handling
+      if (gateway === 'BANK_TRANSFER' || statusParam === 'pending_transfer') {
+        setVerificationState('bank_transfer')
+        setPaymentData({
+          order_number: reference.replace(/^bt_/, '').split('_')[0] || `ORD-${Date.now().toString().substring(5)}`,
+          provider: 'Company Bank Transfer',
+          provider_reference: reference || `bt_${Date.now()}`,
+          amount: 1450000.0,
+          currency: 'NGN',
+          order_status: 'PENDING_TRANSFER',
+          bank_name: 'Guaranty Trust Bank (GTBank)',
+          account_name: 'Custom Laptop Sales Nigeria Ltd',
+          account_number: '0123456789',
+          whatsapp_number: '0708 425 6460'
+        })
+        clearCart()
+        return
+      }
+
       if (!reference) {
         // If no reference in URL, simulate or show notice
         setVerificationState('success')
@@ -119,6 +139,97 @@ function VerifyContent() {
               <Link href="/">
                 <Button variant="outline" size="md">Return to Store</Button>
               </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Bank Transfer State */}
+        {verificationState === 'bank_transfer' && paymentData && (
+          <div>
+            {/* Top Banner */}
+            <div className="p-8 bg-gradient-to-r from-navy to-[#1a3a60] text-white text-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-primary/30 border-2 border-primary text-sky-300 flex items-center justify-center mx-auto shadow-lg shadow-primary/20">
+                <Building2 size={36} />
+              </div>
+              <h1 className="text-2xl font-black tracking-tight">Direct Bank Transfer Registered!</h1>
+              <p className="text-xs text-sky-200 max-w-md mx-auto">
+                Your order is reserved. Complete payment by transferring to the company account below and send proof to WhatsApp for instant clearance.
+              </p>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-xs font-mono backdrop-blur-sm border border-white/20">
+                <ShieldCheck size={14} className="text-primary" />
+                Order #{paymentData.order_number}
+              </div>
+            </div>
+
+            {/* Bank Details & WhatsApp Action */}
+            <div className="p-8 space-y-6">
+              <div className="p-5 rounded-2xl bg-primary-soft/60 border border-primary/30 space-y-3">
+                <h3 className="text-sm font-bold text-navy flex items-center gap-2">
+                  <Building2 size={16} className="text-primary" />
+                  Official Company Bank Account
+                </h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 bg-white rounded-xl border border-border">
+                    <span className="text-[10px] text-muted block uppercase font-bold">Bank Name</span>
+                    <span className="text-sm font-extrabold text-navy">{paymentData.bank_name}</span>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-border">
+                    <span className="text-[10px] text-muted block uppercase font-bold">Account Name</span>
+                    <span className="text-sm font-extrabold text-navy">{paymentData.account_name}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-white rounded-xl border border-primary/40 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-muted block uppercase font-bold">Account Number</span>
+                    <span className="text-lg font-mono font-black text-navy tracking-wider">{paymentData.account_number}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(paymentData.account_number)
+                      alert(`Account number copied: ${paymentData.account_number}`)
+                    }}
+                    className="px-3 py-1.5 text-xs bg-primary text-white rounded-lg font-bold hover:bg-primary/90 flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Copy size={13} />
+                    Copy Account
+                  </button>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="p-4 rounded-xl bg-muted-bg text-xs space-y-2 border border-border">
+                <p className="font-bold text-navy">Next Steps for Clearance:</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted">
+                  <li>Transfer the order total to the company account above via your mobile banking app.</li>
+                  <li>Include Order Reference <strong className="text-navy">{paymentData.provider_reference}</strong> in your transfer remark/narration.</li>
+                  <li>Click the WhatsApp button below to submit your debit receipt/screenshot to our care desk.</li>
+                </ol>
+              </div>
+
+              {/* WhatsApp & Home Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <a
+                  href={`https://wa.me/2347084256460?text=${encodeURIComponent(`Hello Custom Laptop Sales Care! I have completed a bank transfer for Order #${paymentData.order_number} (Ref: ${paymentData.provider_reference}). Here is my payment receipt screenshot:`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1"
+                >
+                  <Button variant="primary" size="lg" className="w-full justify-center bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold gap-2">
+                    <MessageSquare size={18} />
+                    <span>Send Receipt on WhatsApp (0708 425 6460)</span>
+                  </Button>
+                </a>
+
+                <Link href="/" className="sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full justify-center">
+                    <Home size={16} className="mr-1.5" />
+                    Marketplace
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         )}

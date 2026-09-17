@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Request, Query, s
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.models import Payment, Order
 from app.schemas import (
@@ -13,7 +14,8 @@ from app.schemas import (
     PaymentStatusEnum,
     PaymentInitializeRequest,
     PaymentInitializeResponse,
-    PaymentVerificationResponse
+    PaymentVerificationResponse,
+    CompanyBankDetailsResponse
 )
 from app.modules.payments.domain.models import PaymentProviderType, PaymentStatus
 from app.modules.payments.services.payment_service import payment_service
@@ -25,7 +27,8 @@ router = APIRouter(prefix="/payments", tags=["Payments"])
 @router.get("/gateways", response_model=List[PaymentGatewayInfo])
 async def list_payment_gateways():
     """
-    Returns available Nigerian & international payment gateway providers.
+    Returns available Nigerian & international payment gateway providers,
+    plus direct company bank account transfer.
     """
     return [
         PaymentGatewayInfo(
@@ -54,8 +57,31 @@ async def list_payment_gateways():
             logo_icon="/images/opay-logo.svg",
             supported_channels=["opay_wallet", "qr", "card", "bank_transfer"],
             badge="Zero Transfer Fees"
+        ),
+        PaymentGatewayInfo(
+            id="bank_transfer",
+            name="Company Bank Transfer",
+            code=PaymentProviderEnum.BANK_TRANSFER,
+            description=f"Direct transfer to company account ({settings.COMPANY_BANK_NAME}). Instant receipt confirmation via WhatsApp {settings.COMPANY_WHATSAPP_NUMBER}.",
+            logo_icon="/images/bank-transfer-icon.svg",
+            supported_channels=["bank_transfer", "direct_deposit", "whatsapp_confirmation"],
+            badge="Personal & Corporate Account"
         )
     ]
+
+@router.get("/company-bank", response_model=CompanyBankDetailsResponse)
+async def get_company_bank_details():
+    """
+    Returns the company's verified bank account credentials for direct transfers.
+    """
+    return CompanyBankDetailsResponse(
+        bank_name=settings.COMPANY_BANK_NAME,
+        account_name=settings.COMPANY_ACCOUNT_NAME,
+        account_number=settings.COMPANY_ACCOUNT_NUMBER,
+        currency=settings.CURRENCY,
+        whatsapp_confirmation=settings.COMPANY_WHATSAPP_NUMBER,
+        instructions=f"Make payment to {settings.COMPANY_BANK_NAME} - {settings.COMPANY_ACCOUNT_NUMBER} ({settings.COMPANY_ACCOUNT_NAME}). After transfer, send receipt to WhatsApp {settings.COMPANY_WHATSAPP_NUMBER} for priority clearance."
+    )
 
 @router.post("/initialize", response_model=PaymentInitializeResponse)
 async def initialize_payment(
