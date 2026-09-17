@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { api } from '@/lib/api'
 
 interface CheckoutModalProps {
   isOpen: boolean
@@ -113,41 +114,16 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       }
 
       // Step 1: Create Order
-      const orderRes = await fetch('http://localhost:8000/api/v1/orders/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(checkoutPayload)
-      })
-
-      if (!orderRes.ok) {
-        const errorData = await orderRes.json().catch(() => ({}))
-        throw new Error(errorData.detail || 'Failed to create order.')
-      }
-
-      const orderData = await orderRes.json()
+      const orderData = await api.checkoutOrder(checkoutPayload)
       const orderNumber = orderData.order_number
 
       // Step 2: Initialize Payment with Idempotency Key
-      const initRes = await fetch('http://localhost:8000/api/v1/payments/initialize', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': idempotencyKey
-        },
-        body: JSON.stringify({
-          order_number: orderNumber,
-          provider: selectedGateway,
-          idempotency_key: idempotencyKey,
-          callback_url: `${window.location.origin}/checkout/verify?gateway=${selectedGateway}`
-        })
+      const initData = await api.initializePayment({
+        order_number: orderNumber,
+        provider: selectedGateway,
+        idempotency_key: idempotencyKey,
+        callback_url: `${window.location.origin}/checkout/verify?gateway=${selectedGateway}`
       })
-
-      if (!initRes.ok) {
-        const payErr = await initRes.json().catch(() => ({}))
-        throw new Error(payErr.detail || 'Payment gateway initialization failed.')
-      }
-
-      const initData = await initRes.json()
 
       // Redirect customer to authorized checkout URL
       if (initData.checkout_url) {

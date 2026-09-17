@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Union
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -11,12 +11,22 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = [
+    BACKEND_CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
         "http://127.0.0.1:8000"
     ]
+    
+    @property
+    def cors_origins(self) -> List[str]:
+        if isinstance(self.BACKEND_CORS_ORIGINS, list):
+            return self.BACKEND_CORS_ORIGINS
+        if isinstance(self.BACKEND_CORS_ORIGINS, str):
+            if self.BACKEND_CORS_ORIGINS.strip() == "*":
+                return ["*"]
+            return [origin.strip() for origin in self.BACKEND_CORS_ORIGINS.split(",") if origin.strip()]
+        return ["*"]
     
     # Database
     DATABASE_URL: str = os.getenv(

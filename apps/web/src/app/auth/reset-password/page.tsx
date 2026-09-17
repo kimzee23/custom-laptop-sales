@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token') || 'demo_token'
@@ -142,5 +142,13 @@ export default function ResetPasswordPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading reset password...</div>}>
+      <ResetPasswordContent />
+    </React.Suspense>
   )
 }

@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Search, ShoppingCart, Heart, User, Sparkles, SlidersHorizontal, LogOut, ChevronDown, Package, ShieldCheck, MapPin } from 'lucide-react'
+import { Search, ShoppingCart, Heart, User, Sparkles, SlidersHorizontal, LogOut, ChevronDown, Package, ShieldCheck, MapPin, MessageCircle } from 'lucide-react'
 import { useCartStore } from '@/stores/cartStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
 import { useOrderTrackingStore } from '@/stores/orderTrackingStore'
 import { useConfiguratorStore } from '@/stores/configuratorStore'
 import { useAuthStore } from '@/stores/authStore'
 import { Button } from '@/components/ui/Button'
+import { WHATSAPP_PHONE_DISPLAY, getWhatsAppQuoteUrl } from '@/lib/whatsapp'
 
 interface StoreHeaderProps {
   onSearchChange?: (query: string) => void
@@ -110,6 +111,24 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({ onSearchChange }) => {
           {/* Action CTAs: Custom Builder CTA, Wishlist, Account, Cart */}
           <div className="flex items-center gap-2 sm:gap-3">
             
+            {/* Top Corner WhatsApp Get Quote & Direct Deal CTA */}
+            <a
+              href={getWhatsAppQuoteUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm hover:shadow-md transition-all group"
+              title="Chat with Customer Care for Direct Deals and Custom Quotes"
+            >
+              <div className="relative">
+                <MessageCircle size={16} className="fill-white" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full animate-ping"></span>
+              </div>
+              <div className="flex flex-col text-left leading-tight">
+                <span className="text-[10px] text-emerald-100 font-semibold uppercase tracking-wider">Direct Deal</span>
+                <span>Get Quote: {WHATSAPP_PHONE_DISPLAY}</span>
+              </div>
+            </a>
+
             {/* Quick Builder CTA button */}
             <Button 
               variant="secondary" 

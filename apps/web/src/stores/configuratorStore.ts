@@ -5,6 +5,7 @@ import {
   Product, 
   ArtworkConfiguration 
 } from '@/types'
+import { api } from '@/lib/api'
 
 interface ConfiguratorStore {
   isOpen: boolean
@@ -143,27 +144,20 @@ export const useConfiguratorStore = create<ConfiguratorStore>((set, get) => ({
 
     set({ isCalculating: true })
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-
     try {
-      const response = await fetch(`${API_URL}/configurations/price`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: config.productId,
-          color_id: config.colorId,
-          ram_id: config.ramId,
-          storage_id: config.storageId,
-          gpu_id: config.gpuId,
-          display_id: config.displayId,
-          keyboard_id: config.keyboardId,
-          accessory_ids: config.accessoryIds,
-          artwork: config.artwork,
-        }),
+      const data = await api.calculatePrice({
+        product_id: config.productId,
+        color_id: config.colorId,
+        ram_id: config.ramId,
+        storage_id: config.storageId,
+        gpu_id: config.gpuId,
+        display_id: config.displayId,
+        keyboard_id: config.keyboardId,
+        accessory_ids: config.accessoryIds,
+        artwork: config.artwork,
       })
 
-      if (response.ok) {
-        const data = await response.json()
+      if (data) {
         set({ breakdown: data, isCalculating: false })
         return
       }

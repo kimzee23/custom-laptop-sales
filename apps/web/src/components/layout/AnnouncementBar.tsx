@@ -12,14 +12,23 @@ export const AnnouncementBar: React.FC = () => {
           </span>
         </div>
 
-        <div className="flex items-center gap-6 text-[11px] text-gray-300">
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-4 text-[11px] text-gray-300">
+          <a
+            href="https://wa.me/2347084256460?text=Hello%20RealTech!%20I%20would%20like%20to%20get%20a%20quote%20for%20a%20custom%20laptop%20or%20make%20a%20direct%20deal."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 hover:text-white hover:bg-emerald-500/30 transition-colors font-semibold"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Customer Care & Direct Deal: <strong>0708 425 6460</strong></span>
+          </a>
+          <div className="hidden lg:flex items-center gap-1.5">
             <Cpu size={13} className="text-primary-sky" />
             <span>Instant Custom Laptop Pricing Engine</span>
           </div>
           <div className="hidden md:flex items-center gap-1.5">
             <ShieldCheck size={13} className="text-success" />
-            <span>2-Year Official Manufacturer Warranty</span>
+            <span>2-Year Warranty</span>
           </div>
         </div>
       </div>

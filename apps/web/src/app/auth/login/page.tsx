@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore, DEMO_ACCOUNTS } from '@/stores/authStore'
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/account'
@@ -284,5 +284,13 @@ export default function LoginPage() {
         </Link>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading sign in...</div>}>
+      <LoginFormContent />
+    </React.Suspense>
   )
 }

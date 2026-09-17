@@ -13,6 +13,7 @@ import { AccessoriesSection } from '@/components/homepage/AccessoriesSection'
 import { TrustSection } from '@/components/homepage/TrustSection'
 import { ReviewsSection } from '@/components/homepage/ReviewsSection'
 import { NewsletterSection } from '@/components/homepage/NewsletterSection'
+import { api } from '@/lib/api'
 
 const INITIAL_PRODUCTS: Product[] = [
   {
@@ -163,13 +164,8 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
 
   useEffect(() => {
-    // Try to fetch latest products from API backend
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-    fetch(`${API_URL}/products`)
-      .then((res) => {
-        if (res.ok) return res.json()
-        throw new Error('API request failed')
-      })
+    // Fetch latest products from backend
+    api.getProducts()
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setProducts(data)

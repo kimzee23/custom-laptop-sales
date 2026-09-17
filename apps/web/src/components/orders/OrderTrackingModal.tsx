@@ -8,6 +8,7 @@ import {
 import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { api } from '@/lib/api'
 
 interface OrderTrackingModalProps {
   isOpen: boolean
@@ -40,14 +41,12 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
 
     try {
       // 1. Query order payment and build status from backend
-      const res = await fetch(`http://localhost:8000/api/v1/payments/order/${trimmed}/status`)
-      if (!res.ok) {
+      try {
+        const data = await api.getOrderPaymentStatus(trimmed)
+        setOrderData(data)
+      } catch {
         // Also try general order endpoint
-        const fallbackRes = await fetch(`http://localhost:8000/api/v1/orders/${trimmed}`)
-        if (!fallbackRes.ok) {
-          throw new Error(`Order #${trimmed} not found. Please verify your order number.`)
-        }
-        const fallbackData = await fallbackRes.json()
+        const fallbackData = await api.getOrder(trimmed)
         setOrderData({
           order_number: fallbackData.order_number,
           order_status: fallbackData.status,
@@ -59,11 +58,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
           shipping_address: fallbackData.shipping_address,
           items: fallbackData.items || []
         })
-        return
       }
-
-      const data = await res.json()
-      setOrderData(data)
     } catch (err: any) {
       console.warn('Backend query notice:', err)
       // Provide realistic simulated fallback demo order if user enters demo ID

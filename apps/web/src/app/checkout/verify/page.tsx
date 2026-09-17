@@ -11,6 +11,7 @@ import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { useCartStore } from '@/stores/cartStore'
+import { api } from '@/lib/api'
 
 function VerifyContent() {
   const searchParams = useSearchParams()
@@ -46,11 +47,7 @@ function VerifyContent() {
       }
 
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/payments/verify/${gateway}/${reference}`)
-        if (!res.ok) {
-          throw new Error('Server verification response was not OK')
-        }
-        const data = await res.json()
+        const data = await api.verifyPayment(gateway, reference)
         if (isMounted) {
           if (data.status === 'SUCCESS' || statusParam.toLowerCase() === 'success' || statusParam.toLowerCase() === 'successful') {
             setVerificationState('success')

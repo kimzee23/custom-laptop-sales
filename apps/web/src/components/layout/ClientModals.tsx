@@ -5,6 +5,7 @@ import { ConfiguratorModal } from '@/components/configurator/ConfiguratorModal'
 import { CheckoutModal } from '@/components/checkout/CheckoutModal'
 import { WishlistDrawer } from '@/components/wishlist/WishlistDrawer'
 import { OrderTrackingModal } from '@/components/orders/OrderTrackingModal'
+import { WhatsAppFloatingButton } from '@/components/common/WhatsAppFloatingButton'
 import { useCartStore } from '@/stores/cartStore'
 import { useOrderTrackingStore } from '@/stores/orderTrackingStore'
 
@@ -26,6 +27,7 @@ export const ClientModals: React.FC = () => {
         initialOrderNumber={trackingOrderNumber}
         onClose={closeTracking}
       />
+      <WhatsAppFloatingButton />
     </>
   )
 }

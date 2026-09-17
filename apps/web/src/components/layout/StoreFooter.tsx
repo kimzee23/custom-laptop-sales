@@ -12,9 +12,11 @@ import {
   Lock,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  MessageCircle
 } from 'lucide-react'
 import { useOrderTrackingStore } from '@/stores/orderTrackingStore'
+import { WHATSAPP_PHONE_DISPLAY, getWhatsAppQuoteUrl } from '@/lib/whatsapp'
 
 export const StoreFooter: React.FC = () => {
   const { openTracking } = useOrderTrackingStore()
@@ -89,11 +91,22 @@ export const StoreFooter: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={14} className="text-primary-sky" />
-                <span>+234 800 REAL TECH (0800 7325 8324)</span>
+                <span>Customer Care: {WHATSAPP_PHONE_DISPLAY}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={14} className="text-primary-sky" />
                 <span>support@realtechlaptops.com</span>
+              </div>
+              <div className="pt-2">
+                <a
+                  href={getWhatsAppQuoteUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold transition-all shadow-sm"
+                >
+                  <MessageCircle size={15} className="fill-white" />
+                  <span>Get Direct Deal Quote ({WHATSAPP_PHONE_DISPLAY})</span>
+                </a>
               </div>
             </div>
           </div>

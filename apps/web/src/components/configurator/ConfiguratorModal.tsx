@@ -17,13 +17,15 @@ import {
   Save, 
   SlidersHorizontal,
   Info,
-  ShieldCheck
+  ShieldCheck,
+  MessageCircle
 } from 'lucide-react'
 import { useConfiguratorStore } from '@/stores/configuratorStore'
 import { useCartStore } from '@/stores/cartStore'
 import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { WHATSAPP_PHONE_DISPLAY, getWhatsAppQuoteUrl } from '@/lib/whatsapp'
 
 const COLOR_OPTIONS = [
   { id: 'opt-color-arctic', name: 'Arctic Blue', hex: '#1769FF', price: 20000, description: 'Metallic anodized tech blue' },
@@ -594,6 +596,21 @@ export const ConfiguratorModal: React.FC = () => {
                   <span>ADD TO CART</span>
                 </Button>
               </div>
+
+              {/* Direct Deal WhatsApp Quote Button */}
+              <a
+                href={getWhatsAppQuoteUrl({
+                  productTitle: selectedProduct?.title,
+                  price: breakdown.total,
+                  specsSummary: breakdown.items.map(i => i.name).join(', ')
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all"
+              >
+                <MessageCircle size={16} className="fill-white" />
+                <span>Get Instant Quote on WhatsApp ({WHATSAPP_PHONE_DISPLAY})</span>
+              </a>
 
             </div>
 

@@ -53,9 +53,11 @@ os.makedirs(os.path.join(static_dir, "uploads", "artwork"), exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # CORS Setup
+cors_origins = settings.cors_origins if hasattr(settings, "cors_origins") else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=cors_origins if "*" not in cors_origins else ["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

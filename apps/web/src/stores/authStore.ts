@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { AuthState, User, UserAddress, SavedCustomBuild, LoginCredentials, RegisterData } from '@/types/auth'
+import { api } from '@/lib/api'
 
 // Pre-seeded demo customers for fast 1-click testing
 export const DEMO_ACCOUNTS: Array<{ label: string; email: string; pass: string; user: User }> = [
@@ -110,8 +111,34 @@ export const useAuthStore = create<AuthState>()(
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null })
         
-        // Simulate network latency
-        await new Promise((resolve) => setTimeout(resolve, 600))
+        // Attempt live backend API login
+        try {
+          const apiRes = await api.login({ email: credentials.email, password: credentials.password })
+          if (apiRes && apiRes.access_token) {
+            const apiUser: User = {
+              id: apiRes.user?.id || `usr_${Date.now()}`,
+              name: apiRes.user?.name || credentials.email.split('@')[0],
+              email: apiRes.user?.email || credentials.email,
+              phone: apiRes.user?.phone || '08000000000',
+              role: (apiRes.user?.role as any) || 'customer',
+              joinedAt: apiRes.user?.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              rewardPoints: apiRes.user?.reward_points || 500,
+              addresses: [],
+              savedBuilds: []
+            }
+            set({
+              user: apiUser,
+              token: apiRes.access_token,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          }
+        } catch (e: any) {
+          // If network error, fallback to offline demo below
+          console.warn('Backend login notice (falling back to local/demo):', e.message)
+        }
 
         // Check if matches demo accounts
         const matchedDemo = DEMO_ACCOUNTS.find(
@@ -165,12 +192,43 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null })
-        await new Promise((resolve) => setTimeout(resolve, 800))
 
         if (!data.name || !data.email || !data.password) {
           const err = 'Please fill in all required fields.'
           set({ isLoading: false, error: err })
           return { success: false, error: err }
+        }
+
+        try {
+          const apiRes = await api.register({
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            phone: data.phone
+          })
+          if (apiRes && apiRes.access_token) {
+            const apiUser: User = {
+              id: apiRes.user?.id || `usr_${Date.now()}`,
+              name: apiRes.user?.name || data.name,
+              email: apiRes.user?.email || data.email,
+              phone: apiRes.user?.phone || data.phone || '08000000000',
+              role: (apiRes.user?.role as any) || 'customer',
+              joinedAt: apiRes.user?.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              rewardPoints: apiRes.user?.reward_points || 1000,
+              addresses: [],
+              savedBuilds: []
+            }
+            set({
+              user: apiUser,
+              token: apiRes.access_token,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null
+            })
+            return { success: true }
+          }
+        } catch (e: any) {
+          console.warn('Backend register notice (falling back to offline demo):', e.message)
         }
 
         const newUser: User = {

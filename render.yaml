@@ -1,0 +1,25 @@
+services:
+  # FastAPI Backend Web Service
+  - type: web
+    name: custom-laptop-api
+    runtime: python
+    rootDir: apps/api
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: PROJECT_NAME
+        value: "Custom Laptop Store API"
+      - key: BACKEND_CORS_ORIGINS
+        value: "*"
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./laptop_store.db
+      - key: SYNC_DATABASE_URL
+        value: sqlite:///./laptop_store.db

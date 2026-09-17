@@ -1,7 +1,17 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+function getApiBase(): string {
+  let base = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+  base = base.replace(/\/+$/, '');
+  if (!base.endsWith('/api/v1')) {
+    base = `${base}/api/v1`;
+  }
+  return base;
+}
+
+const API_BASE = getApiBase();
 
 async function fetchJson<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const base = getApiBase();
+  const url = `${base}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   const headers = new Headers(options.headers || {});
   
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
@@ -168,6 +178,10 @@ export const api = {
 
   async getOrder(idOrNumber: string) {
     return fetchJson<any>(`/orders/${idOrNumber}`);
+  },
+
+  async getOrderPaymentStatus(orderNumber: string) {
+    return fetchJson<any>(`/payments/order/${orderNumber}/status`);
   },
 
   // -----------------
