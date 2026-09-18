@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Search, ShoppingCart, Heart, User, Sparkles, SlidersHorizontal, LogOut, ChevronDown, Package, ShieldCheck, MapPin, MessageCircle } from 'lucide-react'
+import { Search, ShoppingCart, Heart, User, UserPlus, Sparkles, SlidersHorizontal, LogOut, ChevronDown, Package, ShieldCheck, MapPin, MessageCircle } from 'lucide-react'
 import { useCartStore } from '@/stores/cartStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
 import { useOrderTrackingStore } from '@/stores/orderTrackingStore'
@@ -176,12 +176,24 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({ onSearchChange }) => {
               )}
             </button>
 
+            {/* Mobile Direct Sign Up Button for Guests */}
+            {!isAuthenticated && (
+              <Link
+                href="/auth/register"
+                className="sm:hidden flex items-center gap-1 bg-primary text-white hover:bg-primary-hover px-2.5 py-1.5 rounded-xl text-xs font-black shadow-sm active:scale-95 whitespace-nowrap"
+                title="Create an account"
+              >
+                <UserPlus size={13} />
+                <span>Sign Up</span>
+              </Link>
+            )}
+
             {/* Account & User Menu */}
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 250)}
-                className="hidden sm:flex items-center gap-2 p-2 rounded-xl text-navy hover:bg-primary-soft hover:text-primary transition-colors text-xs font-semibold"
+                className="flex items-center gap-1.5 p-1.5 sm:p-2 rounded-xl text-navy hover:bg-primary-soft hover:text-primary transition-colors text-xs font-semibold"
                 title={isAuthenticated ? `Signed in as ${user?.name}` : "Sign In or View Account"}
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
@@ -208,7 +220,7 @@ export const StoreHeader: React.FC<StoreHeaderProps> = ({ onSearchChange }) => {
 
               {/* User Dropdown Menu */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-dropdown border border-border p-2 z-50 animate-fade-in text-foreground">
+                <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-dropdown border border-border p-2 z-50 animate-fade-in text-foreground">
                   {isAuthenticated && user ? (
                     <>
                       {/* Logged in header info */}

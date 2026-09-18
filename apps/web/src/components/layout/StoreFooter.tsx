@@ -138,19 +138,32 @@ export const StoreFooter: React.FC = () => {
           </div>
 
           {/* Customer Care & Legal */}
+          {/* Customer Care & Account */}
           <div className="space-y-3">
-            <h5 className="text-sm font-bold text-white">Customer Support</h5>
+            <h5 className="text-sm font-bold text-white">Account & Support</h5>
             <ul className="space-y-2 text-muted-light">
               <li>
+                <Link href="/auth/register" className="text-primary-sky font-bold hover:underline transition-colors flex items-center gap-1">
+                  <span>Sign Up / Create Account</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/auth/login" className="hover:text-primary-sky transition-colors">
+                  Customer Sign In
+                </Link>
+              </li>
+              <li>
+                <Link href="/account" className="hover:text-primary-sky transition-colors">
+                  My Profile & Saved Builds
+                </Link>
+              </li>
+              <li>
                 <button onClick={() => openTracking()} className="hover:text-primary-sky transition-colors text-left">
-                  Track Your Order
+                  Track Your Order Live
                 </button>
               </li>
-              <li><Link href="#products-section" className="hover:text-primary-sky transition-colors">Delivery Timelines</Link></li>
               <li><Link href="#products-section" className="hover:text-primary-sky transition-colors">Warranty & Repairs</Link></li>
-              <li><Link href="#products-section" className="hover:text-primary-sky transition-colors">Returns & Refunds</Link></li>
-              <li><Link href="#products-section" className="hover:text-primary-sky transition-colors">Corporate / Bulk Inquiries</Link></li>
-              <li><Link href="#products-section" className="hover:text-primary-sky transition-colors">Privacy & Security Policy</Link></li>
+              <li><Link href="#products-section" className="hover:text-primary-sky transition-colors">Corporate / Bulk Deals</Link></li>
             </ul>
           </div>
 
