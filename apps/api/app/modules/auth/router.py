@@ -22,7 +22,10 @@ from app.schemas import (
     UserProfileUpdateRequest,
     ChangePasswordRequest,
     ForgotPasswordRequest,
-    ResetPasswordRequest
+    ResetPasswordRequest,
+    CheckUserRequest,
+    UserCheckResponse,
+    UserExistData
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Accounts"])
@@ -43,23 +46,78 @@ def format_user_profile(user: User) -> UserProfileResponse:
 # Customer Auth
 # -----------------
 
+@router.post("/check-user", response_model=UserCheckResponse)
+@router.get("/check-user", response_model=UserCheckResponse)
+async def check_user_exists(
+    email: Optional[str] = None,
+    body: Optional[CheckUserRequest] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Check if a user account exists with given email.
+    Returns:
+    {
+        "statusCode": 200,
+        "message": "User exist",
+        "data": { "userExist": true, "userSetUpPassword": true },
+        "successful": true
+    }
+    """
+    target_email = ((body.email if body else None) or email or "").strip().lower()
+    if not target_email:
+        return UserCheckResponse(
+            statusCode=400,
+            message="Email is required",
+            data=UserExistData(userExist=False, userSetUpPassword=False),
+            successful=False
+        )
+
+    stmt = select(User).where(User.email == target_email)
+    res = await db.execute(stmt)
+    user = res.scalar_one_or_none()
+
+    user_exists = user is not None
+    user_has_password = bool(user and user.hashed_password)
+
+    return UserCheckResponse(
+        statusCode=200,
+        message="User exist" if user_exists else "User does not exist",
+        data=UserExistData(
+            userExist=user_exists,
+            userSetUpPassword=user_has_password,
+            email=target_email
+        ),
+        successful=True
+    )
+
 @router.post("/register", response_model=AuthTokenResponse, status_code=status.HTTP_201_CREATED)
 async def register_customer(
     body: UserRegisterRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Register a new customer account and instantly return authenticated JWT session.
+    Register a new customer account and return standard REST envelope with JWT session.
+    If user already exists, returns structured 400 error with userExist: True.
     """
     clean_email = body.email.strip().lower()
     
     # Check if email is already in use
     stmt = select(User).where(User.email == clean_email)
     res = await db.execute(stmt)
-    if res.scalar_one_or_none():
+    existing_user = res.scalar_one_or_none()
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="An account with this email address already exists."
+            detail={
+                "statusCode": 400,
+                "message": "User exist",
+                "data": {
+                    "userExist": True,
+                    "userSetUpPassword": bool(existing_user.hashed_password),
+                    "email": clean_email
+                },
+                "successful": False
+            }
         )
 
     new_user = User(
@@ -76,11 +134,23 @@ async def register_customer(
     await db.refresh(new_user)
 
     token = create_access_token({"sub": new_user.id, "email": new_user.email, "role": new_user.role})
+    user_profile = format_user_profile(new_user)
+    
     return AuthTokenResponse(
         access_token=token,
         token_type="bearer",
         expires_in=604800,
-        user=format_user_profile(new_user)
+        user=user_profile,
+        statusCode=201,
+        message="User registered successfully",
+        data={
+            "userExist": False,
+            "userSetUpPassword": True,
+            "access_token": token,
+            "token_type": "bearer",
+            "user": user_profile.model_dump()
+        },
+        successful=True
     )
 
 @router.post("/login", response_model=AuthTokenResponse)
@@ -99,15 +169,34 @@ async def login_customer(
     if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password."
+            detail={
+                "statusCode": 401,
+                "message": "Invalid email or password.",
+                "data": {
+                    "userExist": bool(user),
+                    "userSetUpPassword": bool(user and user.hashed_password)
+                },
+                "successful": False
+            }
         )
 
     token = create_access_token({"sub": user.id, "email": user.email, "role": user.role})
+    user_profile = format_user_profile(user)
     return AuthTokenResponse(
         access_token=token,
         token_type="bearer",
         expires_in=604800,
-        user=format_user_profile(user)
+        user=user_profile,
+        statusCode=200,
+        message="Login successful",
+        data={
+            "userExist": True,
+            "userSetUpPassword": True,
+            "access_token": token,
+            "token_type": "bearer",
+            "user": user_profile.model_dump()
+        },
+        successful=True
     )
 
 @router.get("/me", response_model=UserProfileResponse)

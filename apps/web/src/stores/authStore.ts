@@ -114,21 +114,23 @@ export const useAuthStore = create<AuthState>()(
         // Attempt live backend API login
         try {
           const apiRes = await api.login({ email: credentials.email, password: credentials.password })
-          if (apiRes && apiRes.access_token) {
+          const accessToken = apiRes?.access_token || apiRes?.data?.access_token
+          if (accessToken) {
+            const rawUser = apiRes.user || apiRes.data?.user
             const apiUser: User = {
-              id: apiRes.user?.id || `usr_${Date.now()}`,
-              name: apiRes.user?.name || credentials.email.split('@')[0],
-              email: apiRes.user?.email || credentials.email,
-              phone: apiRes.user?.phone || '08000000000',
-              role: (apiRes.user?.role as any) || 'customer',
-              joinedAt: apiRes.user?.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-              rewardPoints: apiRes.user?.reward_points || 500,
+              id: rawUser?.id || `usr_${Date.now()}`,
+              name: rawUser?.name || credentials.email.split('@')[0],
+              email: rawUser?.email || credentials.email,
+              phone: rawUser?.phone || '08000000000',
+              role: (rawUser?.role as any) || 'customer',
+              joinedAt: rawUser?.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              rewardPoints: rawUser?.reward_points || 500,
               addresses: [],
               savedBuilds: []
             }
             set({
               user: apiUser,
-              token: apiRes.access_token,
+              token: accessToken,
               isAuthenticated: true,
               isLoading: false,
               error: null
@@ -136,53 +138,9 @@ export const useAuthStore = create<AuthState>()(
             return { success: true }
           }
         } catch (e: any) {
-          // If network error, fallback to offline demo below
-          console.warn('Backend login notice (falling back to local/demo):', e.message)
-        }
-
-        // Check if matches demo accounts
-        const matchedDemo = DEMO_ACCOUNTS.find(
-          (acc) => acc.email.toLowerCase() === credentials.email.toLowerCase()
-        )
-
-        if (matchedDemo) {
-          if (credentials.password === matchedDemo.pass || credentials.password.length >= 6) {
-            set({
-              user: matchedDemo.user,
-              token: `jwt_token_${matchedDemo.user.id}_${Date.now()}`,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null
-            })
-            return { success: true }
-          } else {
-            set({ isLoading: false, error: 'Invalid password. Try password123' })
-            return { success: false, error: 'Invalid password. Try password123' }
-          }
-        }
-
-        // Generic mock customer login for any valid email & password
-        if (credentials.email.includes('@') && credentials.password.length >= 6) {
-          const newUser: User = {
-            id: `usr_${Date.now()}`,
-            name: credentials.email.split('@')[0].replace(/[\._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            email: credentials.email,
-            phone: '08000000000',
-            role: 'customer',
-            joinedAt: new Date().toISOString().split('T')[0],
-            rewardPoints: 500,
-            addresses: [],
-            savedBuilds: []
-          }
-
-          set({
-            user: newUser,
-            token: `jwt_token_${newUser.id}_${Date.now()}`,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null
-          })
-          return { success: true }
+          const errMsg = e.message || 'Invalid email or password.'
+          set({ isLoading: false, error: errMsg })
+          return { success: false, error: errMsg }
         }
 
         const err = 'Invalid email or password (must be at least 6 characters).'
@@ -206,21 +164,31 @@ export const useAuthStore = create<AuthState>()(
             password: data.password,
             phone: data.phone
           })
-          if (apiRes && apiRes.access_token) {
+
+          // Detect userExist response from backend
+          if (apiRes?.data?.userExist || apiRes?.statusCode === 400 || apiRes?.successful === false) {
+            const msg = apiRes.message || 'An account with this email address already exists. Please sign in.'
+            set({ isLoading: false, error: msg, isAuthenticated: false, user: null })
+            return { success: false, error: msg, userExist: true }
+          }
+
+          const accessToken = apiRes?.access_token || apiRes?.data?.access_token
+          if (accessToken) {
+            const rawUser = apiRes.user || apiRes.data?.user
             const apiUser: User = {
-              id: apiRes.user?.id || `usr_${Date.now()}`,
-              name: apiRes.user?.name || data.name,
-              email: apiRes.user?.email || data.email,
-              phone: apiRes.user?.phone || data.phone || '08000000000',
-              role: (apiRes.user?.role as any) || 'customer',
-              joinedAt: apiRes.user?.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-              rewardPoints: apiRes.user?.reward_points || 1000,
+              id: rawUser?.id || `usr_${Date.now()}`,
+              name: rawUser?.name || data.name,
+              email: rawUser?.email || data.email,
+              phone: rawUser?.phone || data.phone || '08000000000',
+              role: (rawUser?.role as any) || 'customer',
+              joinedAt: rawUser?.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              rewardPoints: rawUser?.reward_points || 1000,
               addresses: [],
               savedBuilds: []
             }
             set({
               user: apiUser,
-              token: apiRes.access_token,
+              token: accessToken,
               isAuthenticated: true,
               isLoading: false,
               error: null
@@ -228,30 +196,15 @@ export const useAuthStore = create<AuthState>()(
             return { success: true }
           }
         } catch (e: any) {
-          console.warn('Backend register notice (falling back to offline demo):', e.message)
+          const errMsg = e.message || 'An account with this email address already exists. Please sign in.'
+          const userExist = e.data?.userExist || errMsg.toLowerCase().includes('exist')
+          set({ isLoading: false, error: errMsg, isAuthenticated: false, user: null })
+          return { success: false, error: errMsg, userExist: Boolean(userExist) }
         }
 
-        const newUser: User = {
-          id: `usr_${Date.now()}`,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          role: 'customer',
-          joinedAt: new Date().toISOString().split('T')[0],
-          rewardPoints: 1000, // Welcome signup bonus
-          addresses: [],
-          savedBuilds: []
-        }
-
-        set({
-          user: newUser,
-          token: `jwt_token_${newUser.id}_${Date.now()}`,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null
-        })
-
-        return { success: true }
+        const fallbackErr = 'Failed to register account. Please try again.'
+        set({ isLoading: false, error: fallbackErr })
+        return { success: false, error: fallbackErr }
       },
 
       socialLogin: async (provider) => {

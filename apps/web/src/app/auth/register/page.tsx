@@ -132,9 +132,22 @@ export default function RegisterPage() {
 
       {/* Feedback Alerts */}
       {(formError || error) && (
-        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2.5 animate-fade-in">
-          <AlertCircle size={16} className="text-red-600 flex-shrink-0" />
-          <span>{formError || error}</span>
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs space-y-2 animate-fade-in">
+          <div className="flex items-center gap-2 font-semibold">
+            <AlertCircle size={16} className="text-red-600 flex-shrink-0" />
+            <span>{formError || error}</span>
+          </div>
+          {((formError || error)?.toLowerCase().includes('exist') || (formError || error)?.toLowerCase().includes('account with this email')) && (
+            <div className="pt-2 border-t border-red-200/60 flex items-center justify-between">
+              <span className="text-slate-600">Already have an account?</span>
+              <Link
+                href={`/auth/login?email=${encodeURIComponent(formData.email)}`}
+                className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-hover shadow-sm transition-all"
+              >
+                Sign In Instead
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

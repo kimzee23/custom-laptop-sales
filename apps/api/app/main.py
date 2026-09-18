@@ -1,7 +1,7 @@
 import uuid
 import time
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -77,16 +77,36 @@ async def request_middleware(request: Request, call_next):
     response.headers["X-Process-Time"] = f"{process_time:.4f}s"
     return response
 
+# Standard REST Exception Handlers
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    if isinstance(exc.detail, dict):
+        content = {
+            "statusCode": exc.status_code,
+            "message": exc.detail.get("message", "Request failed"),
+            "data": exc.detail.get("data", {}),
+            "successful": exc.detail.get("successful", False),
+            **exc.detail
+        }
+    else:
+        content = {
+            "statusCode": exc.status_code,
+            "message": str(exc.detail),
+            "data": {},
+            "successful": False
+        }
+    return JSONResponse(status_code=exc.status_code, content=content)
+
 # Global Exception Handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "success": False,
+            "statusCode": 500,
             "message": "An unexpected internal server error occurred.",
-            "code": "INTERNAL_SERVER_ERROR",
-            "detail": str(exc) if settings.DEBUG else None
+            "data": {"error": str(exc) if settings.DEBUG else None},
+            "successful": False
         }
     )
 

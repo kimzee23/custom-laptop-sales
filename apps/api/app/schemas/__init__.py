@@ -497,11 +497,29 @@ class UserProfileResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class CheckUserRequest(BaseModel):
+    email: str
+
+class UserExistData(BaseModel):
+    userExist: bool
+    userSetUpPassword: bool
+    email: Optional[str] = None
+
+class UserCheckResponse(BaseModel):
+    statusCode: int = 200
+    message: str = "User exist"
+    data: UserExistData
+    successful: bool = True
+
 class AuthTokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int = 604800  # 7 days
     user: UserProfileResponse
+    statusCode: int = 200
+    message: str = "Authentication successful"
+    data: Optional[Dict[str, Any]] = None
+    successful: bool = True
 
 class UserProfileUpdateRequest(BaseModel):
     name: Optional[str] = None

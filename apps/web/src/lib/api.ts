@@ -25,13 +25,20 @@ async function fetchJson<T>(endpoint: string, options: RequestInit = {}): Promis
 
   if (!res.ok) {
     let errorDetail = 'An unexpected error occurred';
+    let errJson: any = null;
     try {
-      const errJson = await res.json();
-      errorDetail = errJson.detail || errJson.message || JSON.stringify(errJson);
+      errJson = await res.json();
+      errorDetail = errJson.message || errJson.detail || JSON.stringify(errJson);
     } catch {
       errorDetail = await res.text() || res.statusText;
     }
-    throw new Error(errorDetail);
+    const error: any = new Error(errorDetail);
+    error.status = res.status;
+    error.statusCode = errJson?.statusCode || res.status;
+    error.data = errJson?.data || null;
+    error.successful = errJson?.successful || false;
+    error.raw = errJson;
+    throw error;
   }
 
   return res.json() as Promise<T>;
@@ -302,6 +309,15 @@ export const api = {
   // -----------------
   // Authentication & Accounts
   // -----------------
+  async checkUser(email: string) {
+    return fetchJson<{
+      statusCode: number;
+      message: string;
+      data: { userExist: boolean; userSetUpPassword: boolean; email?: string };
+      successful: boolean;
+    }>(`/auth/check-user?email=${encodeURIComponent(email)}`);
+  },
+
   async register(data: { name: string; email: string; password: string; phone?: string }) {
     return fetchJson<any>('/auth/register', {
       method: 'POST',
