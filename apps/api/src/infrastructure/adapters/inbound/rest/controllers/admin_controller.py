@@ -33,16 +33,16 @@ async def get_admin_products(
     prods = await product_service.list_products(page=1, page_size=100)
     return [
         {
-            "id": p.id,
-            "title": p.title,
-            "slug": p.slug,
-            "base_price": p.base_price,
-            "stock": p.stock,
-            "is_featured": p.is_featured,
-            "category": p.category.name if p.category else None,
-            "brand": p.brand.name if p.brand else None
+            "id": product.id,
+            "title": product.title,
+            "slug": product.slug,
+            "base_price": product.base_price,
+            "stock": product.stock,
+            "is_featured": product.is_featured,
+            "category": product.category.name if product.category else None,
+            "brand": product.brand.name if product.brand else None
         }
-        for p in prods
+        for product in prods
     ]
 
 @router.post("/products", status_code=status.HTTP_201_CREATED)
@@ -94,10 +94,10 @@ async def get_admin_configurations(
     cats = await config_service.get_configuration_categories()
     return [
         {
-            "id": c.id,
-            "code": c.code,
-            "name": c.name,
-            "options_count": len(c.options),
+            "id": admin_configuration.id,
+            "code": admin_configuration.code,
+            "name": admin_configuration.name,
+            "options_count": len(admin_configuration.options),
             "options": [
                 {
                     "id": opt.id,
@@ -106,10 +106,10 @@ async def get_admin_configurations(
                     "price_modifier": opt.price_modifier,
                     "stock": opt.stock
                 }
-                for opt in c.options
+                for opt in admin_configuration.options
             ]
         }
-        for c in cats
+        for admin_configuration in cats
     ]
 
 @router.post("/configurations", status_code=status.HTTP_201_CREATED)
@@ -157,15 +157,15 @@ async def get_admin_orders(
     orders = await admin_service.list_all_orders(status=status)
     return [
         {
-            "id": o.id,
-            "order_number": o.order_number,
-            "customer_name": o.customer_name,
-            "customer_email": o.customer_email,
-            "total_amount": o.total_amount,
-            "status": o.status.value if hasattr(o.status, "value") else str(o.status),
-            "created_at": o.created_at.isoformat() if o.created_at else None
+            "id": order.id,
+            "order_number": order.order_number,
+            "customer_name": order.customer_name,
+            "customer_email": order.customer_email,
+            "total_amount": order.total_amount,
+            "status": order.status.value if hasattr(order.status, "value") else str(order.status),
+            "created_at": order.created_at.isoformat() if order.created_at else None
         }
-        for o in orders
+        for order in orders
     ]
 
 @router.patch("/orders/{order_id}")
@@ -192,12 +192,12 @@ async def get_admin_customers(
     customers = await admin_service.list_all_customers()
     return [
         {
-            "id": c.id,
-            "name": c.name,
-            "email": c.email,
-            "phone": c.phone,
-            "role": c.role,
-            "reward_points": c.reward_points
+            "id": customer.id,
+            "name": customer.name,
+            "email": customer.email,
+            "phone": customer.phone,
+            "role": customer.role,
+            "reward_points": customer.reward_points
         }
-        for c in customers
+        for customer in customers
     ]
