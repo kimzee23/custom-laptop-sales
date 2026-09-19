@@ -1,6 +1,9 @@
 from src.domain.exception.base import DomainException
 
-from apps.api.src.application.Enum import Error_Message
+try:
+    from src.application.Enum.Error_Message import Error_Message
+except ImportError:
+    from apps.api.src.application.Enum.Error_Message import Error_Message
 
 
 class UserAlreadyExistsException(DomainException):
@@ -68,3 +71,12 @@ class CartItemNotFoundException(DomainException):
 class ConfigurationNotFoundException(DomainException):
     def __init__(self, message: str = Error_Message.CONFIGURATION_NOT_FOUND.value):
         super().__init__(message=message, status_code=404)
+
+class InvalidOtpException(DomainException):
+    def __init__(self, message: str = Error_Message.INVALID_OTP.value):
+        super().__init__(message=message, status_code=400)
+
+class OtpExpiredException(DomainException):
+    def __init__(self, message: str = Error_Message.OTP_EXPIRED.value):
+        super().__init__(message=message, status_code=400)
+

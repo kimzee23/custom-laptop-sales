@@ -37,6 +37,9 @@ class UserRepository(UserRepositoryPort):
             avatar_url=entity.avatar_url,
             role=entity.role,
             reward_points=entity.reward_points,
+            is_verified=getattr(entity, "is_verified", False),
+            otp_code=getattr(entity, "otp_code", None),
+            otp_expires_at=getattr(entity, "otp_expires_at", None),
             created_at=entity.created_at,
             updated_at=entity.updated_at,
             addresses=addresses
@@ -68,6 +71,9 @@ class UserRepository(UserRepositoryPort):
                 avatar_url=user.avatar_url,
                 role=user.role,
                 reward_points=user.reward_points,
+                is_verified=user.is_verified,
+                otp_code=user.otp_code,
+                otp_expires_at=user.otp_expires_at,
                 created_at=user.created_at,
                 updated_at=user.updated_at
             )
@@ -80,6 +86,9 @@ class UserRepository(UserRepositoryPort):
             entity.avatar_url = user.avatar_url
             entity.role = user.role
             entity.reward_points = user.reward_points
+            entity.is_verified = user.is_verified
+            entity.otp_code = user.otp_code
+            entity.otp_expires_at = user.otp_expires_at
             entity.updated_at = user.updated_at
 
         await self.session.commit()

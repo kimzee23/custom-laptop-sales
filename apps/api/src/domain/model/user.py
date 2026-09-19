@@ -15,6 +15,7 @@ class Address:
     country: str = "Nigeria"
     is_default: bool = False
     created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 @dataclass
 class User:
@@ -26,6 +27,9 @@ class User:
     avatar_url: Optional[str] = None
     role: str = "customer"
     reward_points: int = 500
+    is_verified: bool = False
+    otp_code: Optional[str] = None
+    otp_expires_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     addresses: List[Address] = field(default_factory=list)

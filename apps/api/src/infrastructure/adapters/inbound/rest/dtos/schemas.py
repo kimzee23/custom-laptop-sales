@@ -15,6 +15,13 @@ class LoginRequest(BaseModel):
 class CheckUserRequest(BaseModel):
     email: str
 
+class VerifyOtpRequest(BaseModel):
+    email: str
+    otp: str = Field(..., min_length=4, max_length=10)
+
+class ResendOtpRequest(BaseModel):
+    email: str
+
 class ProfileUpdateRequest(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None

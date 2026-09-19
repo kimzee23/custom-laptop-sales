@@ -21,6 +21,7 @@ class CategoryEntity(Base):
     icon = Column(String(50), nullable=True)
     display_order = Column(Integer, default=0)
     created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     products = relationship("ProductEntity", back_populates="category")
 
@@ -31,6 +32,8 @@ class BrandEntity(Base):
     name = Column(String(100), nullable=False, unique=True)
     slug = Column(String(100), nullable=False, unique=True)
     logo_url = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     products = relationship("ProductEntity", back_populates="brand")
 
@@ -79,6 +82,8 @@ class ConfigurationCategoryEntity(Base):
     name = Column(String(100), nullable=False)
     display_order = Column(Integer, default=0)
     is_required = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     options = relationship("ConfigurationOptionEntity", back_populates="category", cascade="all, delete-orphan")
 
@@ -94,6 +99,8 @@ class ConfigurationOptionEntity(Base):
     is_active = Column(Boolean, default=True)
     display_order = Column(Integer, default=0)
     metadata_json = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     category = relationship("ConfigurationCategoryEntity", back_populates="options")
 
@@ -118,6 +125,8 @@ class CartItemEntity(Base):
     unit_price = Column(Float, nullable=False)
     total_price = Column(Float, nullable=False)
     configuration_data = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
     
     cart = relationship("CartEntity", back_populates="items")
     product = relationship("ProductEntity")
@@ -159,6 +168,8 @@ class OrderItemEntity(Base):
     unit_price = Column(Float, nullable=False)
     total_price = Column(Float, nullable=False)
     configuration_snapshot = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     order = relationship("OrderEntity", back_populates="items")
     product = relationship("ProductEntity")
@@ -198,6 +209,8 @@ class ProcessedWebhookEntity(Base):
     payload_hash = Column(String(100), nullable=True)
     processed_at = Column(DateTime, default=utc_now)
     raw_payload = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 class ReviewEntity(Base):
     __tablename__ = "reviews"
@@ -209,6 +222,7 @@ class ReviewEntity(Base):
     comment = Column(Text, nullable=False)
     is_verified = Column(Boolean, default=True)
     created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     product = relationship("ProductEntity", back_populates="reviews")
 
@@ -223,6 +237,12 @@ class UserEntity(Base):
     avatar_url = Column(String(500), nullable=True)
     role = Column(String(20), default="customer")
     reward_points = Column(Integer, default=500)
+    
+    # Email Verification & OTP fields
+    is_verified = Column(Boolean, default=False, nullable=False)
+    otp_code = Column(String(10), nullable=True)
+    otp_expires_at = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
@@ -243,6 +263,7 @@ class AddressEntity(Base):
     country = Column(String(50), default="Nigeria")
     is_default = Column(Boolean, default=False)
     created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     user = relationship("UserEntity", back_populates="addresses")
 
@@ -258,6 +279,7 @@ class SavedConfigurationEntity(Base):
     configuration_snapshot = Column(JSON, default=dict)
     specs_summary = Column(JSON, default=dict)
     created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     user = relationship("UserEntity", back_populates="saved_configurations")
     product = relationship("ProductEntity")
@@ -276,6 +298,7 @@ class PromotionEntity(Base):
     start_date = Column(DateTime, default=utc_now)
     end_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
 class DailyVisitorMetricEntity(Base):
     __tablename__ = "daily_visitor_metrics"
@@ -299,3 +322,4 @@ class VisitorLogEntity(Base):
     user_agent = Column(String(500), nullable=True)
     referrer = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)

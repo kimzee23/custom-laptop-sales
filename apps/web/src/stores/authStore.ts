@@ -182,18 +182,23 @@ export const useAuthStore = create<AuthState>()(
               phone: rawUser?.phone || data.phone || '08000000000',
               role: (rawUser?.role as any) || 'customer',
               joinedAt: rawUser?.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-              rewardPoints: rawUser?.reward_points || 1000,
+              rewardPoints: rawUser?.reward_points || 500,
               addresses: [],
               savedBuilds: []
             }
+            // User needs to verify email with OTP
             set({
               user: apiUser,
               token: accessToken,
-              isAuthenticated: true,
+              isAuthenticated: false, // Don't activate session until OTP verified
               isLoading: false,
               error: null
             })
-            return { success: true }
+            return {
+              success: true,
+              requiresVerification: true,
+              email: data.email
+            }
           }
         } catch (e: any) {
           const errMsg = e.message || 'An account with this email address already exists. Please sign in.'
@@ -205,6 +210,56 @@ export const useAuthStore = create<AuthState>()(
         const fallbackErr = 'Failed to register account. Please try again.'
         set({ isLoading: false, error: fallbackErr })
         return { success: false, error: fallbackErr }
+      },
+
+      verifyOtp: async (email: string, otp: string) => {
+        set({ isLoading: true, error: null })
+        try {
+          const res = await api.verifyOtp({ email, otp })
+          if (res?.verified || res?.successful) {
+            const rawUser = res.user || res.data?.user
+            const accessToken = res.access_token || res.token || res.data?.access_token
+            if (rawUser && accessToken) {
+              const apiUser: User = {
+                id: rawUser.id || `usr_${Date.now()}`,
+                name: rawUser.name || 'Customer',
+                email: rawUser.email || email,
+                phone: rawUser.phone || '',
+                role: (rawUser.role as any) || 'customer',
+                joinedAt: new Date().toISOString().split('T')[0],
+                rewardPoints: rawUser.reward_points || 500,
+                addresses: [],
+                savedBuilds: []
+              }
+              set({
+                user: apiUser,
+                token: accessToken,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null
+              })
+            } else {
+              set({ isLoading: false, error: null })
+            }
+            return { success: true, message: res.message || 'Email verified successfully!' }
+          }
+          const errMsg = res?.message || 'Invalid verification code.'
+          set({ isLoading: false, error: errMsg })
+          return { success: false, error: errMsg }
+        } catch (e: any) {
+          const errMsg = e.message || 'Failed to verify code. Please check and try again.'
+          set({ isLoading: false, error: errMsg })
+          return { success: false, error: errMsg }
+        }
+      },
+
+      resendOtp: async (email: string) => {
+        try {
+          const res = await api.resendOtp({ email })
+          return { success: true, message: res.message || 'A new verification code has been dispatched to your email.' }
+        } catch (e: any) {
+          return { success: false, error: e.message || 'Failed to resend code.' }
+        }
       },
 
       socialLogin: async (provider) => {

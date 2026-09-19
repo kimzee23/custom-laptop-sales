@@ -30,3 +30,12 @@ class AuthUseCase(ABC):
     @abstractmethod
     async def admin_login(self, email: str, password: str) -> Dict[str, Any]:
         pass
+
+    @abstractmethod
+    async def verify_email_otp(self, email: str, otp: str) -> Dict[str, Any]:
+        pass
+
+    @abstractmethod
+    async def resend_email_otp(self, email: str) -> Dict[str, Any]:
+        pass
+

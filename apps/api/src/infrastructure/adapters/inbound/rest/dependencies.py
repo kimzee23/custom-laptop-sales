@@ -26,8 +26,10 @@ from src.infrastructure.adapters.outbound.external.flutterwave_adapter import Fl
 from src.infrastructure.adapters.outbound.external.opay_adapter import OPayAdapter
 from src.infrastructure.adapters.outbound.external.bank_transfer_adapter import BankTransferAdapter
 from src.infrastructure.adapters.outbound.external.local_storage_adapter import LocalStorageAdapter
+from src.infrastructure.adapters.outbound.external.email_adapter import SmtpEmailAdapter
 
 # Services
+from src.application.service.notification_service import NotificationService
 from src.application.service.auth_service import AuthService
 from src.application.service.product_service import ProductService
 from src.application.service.configuration_service import ConfigurationService
@@ -65,13 +67,21 @@ def get_analytics_repository(session: AsyncSession = Depends(get_db_session)) ->
 def get_review_repository(session: AsyncSession = Depends(get_db_session)) -> ReviewRepository:
     return ReviewRepository(session)
 
+def get_notification_service() -> NotificationService:
+    email_adapter = SmtpEmailAdapter()
+    return NotificationService(notification_port=email_adapter)
+
 # Service Providers
-def get_auth_service(user_repo: UserRepository = Depends(get_user_repository)) -> AuthService:
+def get_auth_service(
+    user_repo: UserRepository = Depends(get_user_repository),
+    notification_service: NotificationService = Depends(get_notification_service)
+) -> AuthService:
     return AuthService(
         user_repository=user_repo,
         hash_pw_fn=hash_password,
         verify_pw_fn=verify_password,
-        create_token_fn=create_access_token
+        create_token_fn=create_access_token,
+        notification_service=notification_service
     )
 
 def get_product_service(product_repo: ProductRepository = Depends(get_product_repository)) -> ProductService:
@@ -86,12 +96,19 @@ def get_configuration_service(
 def get_cart_service(cart_repo: CartRepository = Depends(get_cart_repository)) -> CartService:
     return CartService(cart_repository=cart_repo)
 
-def get_order_service(order_repo: OrderRepository = Depends(get_order_repository)) -> OrderService:
-    return OrderService(order_repository=order_repo)
+def get_order_service(
+    order_repo: OrderRepository = Depends(get_order_repository),
+    notification_service: NotificationService = Depends(get_notification_service)
+) -> OrderService:
+    return OrderService(
+        order_repository=order_repo,
+        notification_service=notification_service
+    )
 
 def get_payment_service(
     payment_repo: PaymentRepository = Depends(get_payment_repository),
-    order_repo: OrderRepository = Depends(get_order_repository)
+    order_repo: OrderRepository = Depends(get_order_repository),
+    notification_service: NotificationService = Depends(get_notification_service)
 ) -> PaymentService:
     gateways = {
         PaymentProvider.PAYSTACK: PaystackAdapter(),
@@ -109,7 +126,8 @@ def get_payment_service(
         payment_repository=payment_repo,
         order_repository=order_repo,
         gateway_adapters=gateways,
-        company_bank_details=company_bank
+        company_bank_details=company_bank,
+        notification_service=notification_service
     )
 
 def get_analytics_service(analytics_repo: AnalyticsRepository = Depends(get_analytics_repository)) -> AnalyticsService:

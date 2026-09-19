@@ -94,10 +94,17 @@ export default function RegisterPage() {
     })
 
     if (res.success) {
-      setSuccessMessage('Account created successfully! Redirecting to your dashboard...')
-      setTimeout(() => {
-        router.push('/account')
-      }, 800)
+      if (res.requiresVerification) {
+        setSuccessMessage('Account created! Redirecting to email verification...')
+        setTimeout(() => {
+          router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`)
+        }, 700)
+      } else {
+        setSuccessMessage('Account created successfully! Redirecting to your dashboard...')
+        setTimeout(() => {
+          router.push('/account')
+        }, 800)
+      }
     } else {
       setFormError(res.error || 'Failed to create account.')
     }

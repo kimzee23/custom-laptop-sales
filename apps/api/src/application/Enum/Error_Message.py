@@ -17,3 +17,5 @@ class Error_Message(Enum):
     CATEGORY_NOT_FOUND = "Category not found"
     PRODUCT_NOT_FOUND = "Product not found"
     ACCESS_DENIED = "Access denied"
+    INVALID_OTP = "Invalid OTP verification code"
+    OTP_EXPIRED = "OTP verification code has expired. Please request a new one"

@@ -64,7 +64,9 @@ export interface AuthState {
   
   // Actions
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>
-  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>
+  register: (data: RegisterData) => Promise<{ success: boolean; error?: string; requiresVerification?: boolean; email?: string }>
+  verifyOtp: (email: string, otp: string) => Promise<{ success: boolean; error?: string; message?: string }>
+  resendOtp: (email: string) => Promise<{ success: boolean; error?: string; message?: string }>
   socialLogin: (provider: 'google' | 'github' | 'apple') => Promise<{ success: boolean; error?: string }>
   logout: () => void
   updateProfile: (data: Partial<Pick<User, 'name' | 'phone' | 'avatarUrl'>>) => void

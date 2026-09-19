@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "super-secret-key-change-in-production-min-32-chars"
-    ENVIRONMENT: str = "development"
-    DEBUG: bool = True
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    DEBUG: bool = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
 
     # CORS
     BACKEND_CORS_ORIGINS: Union[List[str], str] = [
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in self.BACKEND_CORS_ORIGINS.split(",") if origin.strip()]
         return ["*"]
 
-    # Database
+    # Database Configuration
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
         "sqlite+aiosqlite:///./laptop_store.db"
@@ -38,8 +38,32 @@ class Settings(BaseSettings):
         "sqlite:///./laptop_store.db"
     )
 
+    @property
+    def async_database_url(self) -> str:
+        """
+        Normalizes database URL for async drivers.
+        Render / Supabase / Neon provide 'postgres://' or 'postgresql://'.
+        SQLAlchemy 2.0 requires 'postgresql+asyncpg://'.
+        """
+        url = self.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return url
+
     # Redis
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+    # Free Email / Notification Configuration
+    # Defaults to standard free Gmail SMTP (smtp.gmail.com:587) or Brevo/SendGrid/Console
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", os.getenv("SMTP_USER", "notifications@realtech.ng"))
+    SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "RealTech Custom Laptops")
+    SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "True").lower() in ("true", "1", "t")
 
     # Currency
     CURRENCY: str = "NGN"

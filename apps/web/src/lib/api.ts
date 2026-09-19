@@ -325,6 +325,37 @@ export const api = {
     });
   },
 
+  async verifyOtp(payload: { email: string; otp: string }) {
+    return fetchJson<{
+      statusCode: number;
+      message: string;
+      verified: boolean;
+      access_token?: string;
+      token?: string;
+      token_type?: string;
+      user?: any;
+      data?: any;
+      successful: boolean;
+    }>('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async resendOtp(payload: { email: string }) {
+    return fetchJson<{
+      statusCode: number;
+      message: string;
+      sent?: boolean;
+      already_verified?: boolean;
+      data?: any;
+      successful: boolean;
+    }>('/auth/resend-otp', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
   async login(credentials: { email: string; password: string }) {
     return fetchJson<any>('/auth/login', {
       method: 'POST',

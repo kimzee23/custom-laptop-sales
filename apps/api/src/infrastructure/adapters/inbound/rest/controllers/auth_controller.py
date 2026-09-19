@@ -7,7 +7,8 @@ from src.infrastructure.adapters.inbound.rest.dependencies import (
 )
 from src.infrastructure.adapters.inbound.rest.dtos.schemas import (
     RegisterRequest, LoginRequest, CheckUserRequest, ProfileUpdateRequest,
-    PasswordChangeRequest, PasswordForgotRequest, PasswordResetRequest
+    PasswordChangeRequest, PasswordForgotRequest, PasswordResetRequest,
+    VerifyOtpRequest, ResendOtpRequest
 )
 from src.infrastructure.adapters.inbound.rest.response import api_response
 
@@ -24,7 +25,29 @@ async def register(req: RegisterRequest, auth_service: AuthService = Depends(get
     return {
         **result,
         "statusCode": 201,
-        "message": "User registered successfully.",
+        "message": "User registered successfully. Please verify your email with the 6-digit OTP code.",
+        "data": result,
+        "successful": True
+    }
+
+@router.post("/verify-otp")
+async def verify_otp(req: VerifyOtpRequest, auth_service: AuthService = Depends(get_auth_service)):
+    result = await auth_service.verify_email_otp(email=req.email, otp=req.otp)
+    return {
+        **result,
+        "statusCode": 200,
+        "message": "Email verified successfully.",
+        "data": result,
+        "successful": True
+    }
+
+@router.post("/resend-otp")
+async def resend_otp(req: ResendOtpRequest, auth_service: AuthService = Depends(get_auth_service)):
+    result = await auth_service.resend_email_otp(email=req.email)
+    return {
+        **result,
+        "statusCode": 200,
+        "message": result.get("message", "Verification code resent successfully."),
         "data": result,
         "successful": True
     }

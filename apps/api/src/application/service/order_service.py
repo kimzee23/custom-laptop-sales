@@ -5,11 +5,13 @@ import random
 from src.domain.model.order import Order, OrderItem, OrderStatus
 from src.domain.exception.exceptions import OrderNotFoundException
 from src.application.ports.inbound.order_usecase import OrderUseCase
+from src.application.ports.inbound.notification_usecase import NotificationUseCase
 from src.application.ports.outbound.order_repository_port import OrderRepositoryPort
 
 class OrderService(OrderUseCase):
-    def __init__(self, order_repository: OrderRepositoryPort):
+    def __init__(self, order_repository: OrderRepositoryPort, notification_service: Optional[NotificationUseCase] = None):
         self.order_repo = order_repository
+        self.notification_service = notification_service
 
     def _generate_order_number(self) -> str:
         date_str = datetime.now().strftime("%Y%m%d")
@@ -68,7 +70,30 @@ class OrderService(OrderUseCase):
             updated_at=datetime.now(timezone.utc),
             items=order_items
         )
-        return await self.order_repo.create_order(order)
+        saved_order = await self.order_repo.create_order(order)
+
+        if self.notification_service:
+            try:
+                await self.notification_service.send_order_confirmation_email({
+                    "customer_email": saved_order.customer_email,
+                    "customer_name": saved_order.customer_name,
+                    "order_number": saved_order.order_number,
+                    "total_amount": saved_order.total_amount,
+                    "status": saved_order.status.value if hasattr(saved_order.status, "value") else str(saved_order.status),
+                    "items": [
+                        {
+                            "title": it.product_title or "Custom Laptop Item",
+                            "quantity": it.quantity,
+                            "total_price": it.total_price
+                        }
+                        for it in saved_order.items
+                    ]
+                })
+            except Exception as e:
+                import logging
+                logging.getLogger("order_service").error(f"Failed to dispatch order confirmation email: {e}")
+
+        return saved_order
 
     async def get_order_by_id_or_number(self, identifier: str) -> Order:
         order = await self.order_repo.get_by_id(identifier)
@@ -86,4 +111,21 @@ class OrderService(OrderUseCase):
         order = await self.order_repo.update_status(order_id, status)
         if not order:
             raise OrderNotFoundException(f"Order '{order_id}' not found.")
+
+        if self.notification_service:
+            try:
+                status_str = status.value if hasattr(status, "value") else str(status)
+                await self.notification_service.send_order_tracking_email(
+                    order_data={
+                        "customer_email": order.customer_email,
+                        "customer_name": order.customer_name,
+                        "order_number": order.order_number
+                    },
+                    tracking_status=status_str,
+                    tracking_note=f"Your order status is now {status_str}."
+                )
+            except Exception as e:
+                import logging
+                logging.getLogger("order_service").error(f"Failed to dispatch order tracking email: {e}")
+
         return order

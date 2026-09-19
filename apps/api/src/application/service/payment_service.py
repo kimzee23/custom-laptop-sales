@@ -9,6 +9,7 @@ from src.domain.exception.exceptions import (
     DuplicateTransactionException
 )
 from src.application.ports.inbound.payment_usecase import PaymentUseCase
+from src.application.ports.inbound.notification_usecase import NotificationUseCase
 from src.application.ports.outbound.payment_repository_port import PaymentRepositoryPort
 from src.application.ports.outbound.order_repository_port import OrderRepositoryPort
 from src.application.ports.outbound.payment_gateway_port import PaymentGatewayPort
@@ -19,12 +20,14 @@ class PaymentService(PaymentUseCase):
         payment_repository: PaymentRepositoryPort,
         order_repository: OrderRepositoryPort,
         gateway_adapters: Dict[PaymentProvider, PaymentGatewayPort],
-        company_bank_details: Dict[str, str]
+        company_bank_details: Dict[str, str],
+        notification_service: Optional[NotificationUseCase] = None
     ):
         self.payment_repo = payment_repository
         self.order_repo = order_repository
         self.gateways = gateway_adapters
         self.bank_details = company_bank_details
+        self.notification_service = notification_service
 
     async def initialize_payment(
         self,
@@ -123,6 +126,27 @@ class PaymentService(PaymentUseCase):
 
             # Mark order as PAID
             await self.order_repo.update_status(payment.order_id, OrderStatus.PAID)
+
+            if self.notification_service:
+                try:
+                    order = await self.order_repo.get_by_id(payment.order_id)
+                    order_dict = {
+                        "customer_email": order.customer_email if order else "",
+                        "customer_name": order.customer_name if order else "Valued Customer",
+                        "order_number": order.order_number if order else ""
+                    } if order else None
+                    await self.notification_service.send_payment_receipt_email(
+                        payment_data={
+                            "provider_reference": payment.provider_reference,
+                            "amount": payment.amount,
+                            "provider": payment.provider.value if hasattr(payment.provider, "value") else str(payment.provider)
+                        },
+                        order_data=order_dict
+                    )
+                except Exception as e:
+                    import logging
+                    logging.getLogger("payment_service").error(f"Failed to dispatch payment receipt email: {e}")
+
             return {
                 "verified": True,
                 "status": "SUCCESS",
@@ -156,6 +180,26 @@ class PaymentService(PaymentUseCase):
                 payment.gateway_response = payload
                 await self.payment_repo.save_payment(payment)
                 await self.order_repo.update_status(payment.order_id, OrderStatus.PAID)
+
+                if self.notification_service:
+                    try:
+                        order = await self.order_repo.get_by_id(payment.order_id)
+                        order_dict = {
+                            "customer_email": order.customer_email if order else "",
+                            "customer_name": order.customer_name if order else "Valued Customer",
+                            "order_number": order.order_number if order else ""
+                        } if order else None
+                        await self.notification_service.send_payment_receipt_email(
+                            payment_data={
+                                "provider_reference": payment.provider_reference,
+                                "amount": payment.amount,
+                                "provider": payment.provider.value if hasattr(payment.provider, "value") else str(payment.provider)
+                            },
+                            order_data=order_dict
+                        )
+                    except Exception as e:
+                        import logging
+                        logging.getLogger("payment_service").error(f"Failed to dispatch payment receipt email: {e}")
 
         event = ProcessedWebhookEvent(
             id=str(uuid.uuid4()),

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from src.infrastructure.config.settings import settings
-from src.infrastructure.adapters.outbound.persistence.database import async_engine, Base, AsyncSessionLocal
+from src.infrastructure.adapters.outbound.persistence.database import async_engine, Base, AsyncSessionLocal, run_auto_migrations
 from src.domain.exception.base import DomainException
 from src.infrastructure.adapters.inbound.rest.exception_handlers import (
     domain_exception_handler, http_exception_handler, global_exception_handler
@@ -28,10 +28,12 @@ from src.infrastructure.adapters.inbound.rest.controllers.health_controller impo
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB schemas & seed database
+    # Initialize DB schemas, run auto migrations & seed database
     try:
         async with async_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+
+        await run_auto_migrations()
 
         from app.seed_data import seed_database
         async with AsyncSessionLocal() as session:
